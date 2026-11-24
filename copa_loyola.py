@@ -1,6 +1,8 @@
 import tkinter
 from tkinter import ttk
 from tkinter import messagebox
+import json
+import os
 
 #    COLORES
 COLOR_FONDO = "#031018"       # fondo de las pestañas
@@ -22,6 +24,10 @@ resultados = []
 
 MEDALLAS = ["Oro", "Plata", "Bronce"]
 PUNTOS = {"Oro": 3, "Plata": 2, "Bronce": 1}
+ARCHIVO_DATOS = "copa_loyola_datos.json"
+CAMPOS = {"universidades": ["nombre", "pais", "ciudad", "tipo"],
+          "deportistas": ["nombre", "tipo_doc", "num_doc", "universidad"],
+          "disciplinas": ["nombre", "modalidad"]}
 
 #       FUNCIONES DE APOYO
 def buscar(lista, clave, valor):
@@ -545,6 +551,88 @@ def consultar():
 
     mostrar(lista_consultas, lineas)
 
+#    MANEJO DE ARCHIVOS (JSON)
+def estructura_valida(datos):
+
+    if type(datos) != dict:
+        return False
+    for seccion in CAMPOS:
+        if type(datos.get(seccion)) != list:
+            return False
+        for registro in datos[seccion]:
+            if type(registro) != dict:
+                return False
+            for campo_registro in CAMPOS[seccion]:
+                if type(registro.get(campo_registro)) != str:
+                    return False
+    for seccion, tamano in [["inscripciones", 2], ["resultados", 3]]:
+        if type(datos.get(seccion)) != list:
+            return False
+        for fila in datos[seccion]:
+            if type(fila) != list or len(fila) != tamano:
+                return False
+
+    # Las referencias deben existir, si no la interfaz falla al mostrar los datos
+    nombres_uni = nombres(datos["universidades"])
+    nombres_dep = nombres(datos["deportistas"])
+    nombres_dis = nombres(datos["disciplinas"])
+    for d in datos["deportistas"]:
+        if d["universidad"] not in nombres_uni:
+            return False
+    for fila in datos["inscripciones"]:
+        if fila[0] not in nombres_dep or fila[1] not in nombres_dis:
+            return False
+    for fila in datos["resultados"]:
+        if fila[0] not in nombres_dis or fila[1] not in nombres_uni or fila[2] not in MEDALLAS:
+            return False
+    return True
+
+def guardar_datos():
+
+    datos = {"universidades": universidades, "deportistas": deportistas,
+             "disciplinas": disciplinas, "inscripciones": inscripciones,
+             "resultados": resultados}
+    if not estructura_valida(datos):
+        messagebox.showerror("Error", "Los datos no tienen una estructura válida.")
+        return
+    try:
+        with open(ARCHIVO_DATOS, "w", encoding="utf-8") as archivo:
+            json.dump(datos, archivo, ensure_ascii=False, indent=4)
+    except (OSError, TypeError) as error:
+        messagebox.showerror("Error", "No se pudo guardar el archivo: " + str(error))
+        return
+    messagebox.showinfo("Guardar datos", "Datos guardados correctamente en " + ARCHIVO_DATOS)
+
+def cargar_datos():
+
+    if not os.path.exists(ARCHIVO_DATOS):
+        messagebox.showerror("Error", "No existe el archivo " + ARCHIVO_DATOS)
+        return
+    try:
+        with open(ARCHIVO_DATOS, "r", encoding="utf-8") as archivo:
+            datos = json.load(archivo)
+    except json.JSONDecodeError:
+        messagebox.showerror("Error", "El archivo JSON tiene un formato inválido.")
+        return
+    except (OSError, UnicodeDecodeError) as error:
+        messagebox.showerror("Error", "No se pudo leer el archivo: " + str(error))
+        return
+    if not estructura_valida(datos):
+        messagebox.showerror("Error", "El archivo no tiene la estructura esperada.")
+        return
+
+    # clear + extend (no "=") para que el resto del programa siga usando las mismas listas
+    for lista, seccion in [[universidades, "universidades"], [deportistas, "deportistas"],
+                           [disciplinas, "disciplinas"], [inscripciones, "inscripciones"],
+                           [resultados, "resultados"]]:
+        lista.clear()
+        lista.extend(datos[seccion])
+    actualizar_listas()
+    messagebox.showinfo("Cargar datos", "Datos cargados correctamente.\n"
+                        "Universidades: " + str(len(universidades)) + " | Deportistas: " + str(len(deportistas)) + "\n"
+                        "Disciplinas: " + str(len(disciplinas)) + " | Inscripciones: " + str(len(inscripciones)) + "\n"
+                        "Resultados: " + str(len(resultados)))
+
 #    CONSTRUCCION DE LA VENTANA
 
 def crear_pestana(titulo):
@@ -657,6 +745,9 @@ combo_consulta = campo(form, "Consulta", ["Deportistas participantes",
                                                "Estadísticas generales"]
 )
 botones(form, [["Consultar", consultar]])
+ttk.Label(form, text="Archivo: " + ARCHIVO_DATOS).pack(anchor="w")
+botones(form, [["Guardar datos (JSON)", guardar_datos],
+               ["Cargar datos (JSON)", cargar_datos]])
 
 actualizar_listas()
 ventana.mainloop()
