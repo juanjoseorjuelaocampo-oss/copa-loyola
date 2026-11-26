@@ -588,6 +588,35 @@ def estructura_valida(datos):
             return False
     return True
 
+#    CONJUNTOS PARA DETECTAR DUPLICADOS
+def repetidos(lista, campo_clave):
+
+    vistos = set()
+    duplicados = set()
+    for registro in lista:
+        valor = registro[campo_clave].lower()
+        if valor in vistos:
+            duplicados.add(registro[campo_clave])
+        vistos.add(valor)
+    return vistos, duplicados
+
+def hay_duplicados():
+
+    set_universidades, dup_universidades = repetidos(universidades, "nombre")
+    set_disciplinas, dup_disciplinas = repetidos(disciplinas, "nombre")
+    set_deportistas, dup_deportistas = repetidos(deportistas, "num_doc")
+    mensaje = ""
+    if len(dup_universidades) > 0:
+        mensaje = mensaje + "Universidades: " + ", ".join(dup_universidades) + "\n"
+    if len(dup_disciplinas) > 0:
+        mensaje = mensaje + "Disciplinas: " + ", ".join(dup_disciplinas) + "\n"
+    if len(dup_deportistas) > 0:
+        mensaje = mensaje + "Documentos de deportistas: " + ", ".join(dup_deportistas) + "\n"
+    if mensaje != "":
+        messagebox.showwarning("Registros repetidos", "Se encontraron datos repetidos:\n" + mensaje)
+        return True
+    return False
+
 def guardar_datos():
 
     datos = {"universidades": universidades, "deportistas": deportistas,
@@ -595,6 +624,8 @@ def guardar_datos():
              "resultados": resultados}
     if not estructura_valida(datos):
         messagebox.showerror("Error", "Los datos no tienen una estructura válida.")
+        return
+    if hay_duplicados():
         return
     try:
         with open(ARCHIVO_DATOS, "w", encoding="utf-8") as archivo:
@@ -635,6 +666,7 @@ def cargar_datos():
                         "Universidades: " + str(len(universidades)) + " | Deportistas: " + str(len(deportistas)) + "\n"
                         "Disciplinas: " + str(len(disciplinas)) + " | Inscripciones: " + str(len(inscripciones)) + "\n"
                         "Resultados: " + str(len(resultados)))
+    hay_duplicados()  # un JSON editado a mano puede traer repetidos que la interfaz no permite crear
 
 def exportar_medallero():
 
