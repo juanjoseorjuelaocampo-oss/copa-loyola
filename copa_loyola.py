@@ -4,6 +4,7 @@ from tkinter import messagebox
 import json
 import csv
 import os
+import pandas as pd
 
 #    COLORES
 COLOR_FONDO = "#031018"       # fondo de las pestañas
@@ -687,6 +688,52 @@ def boton_medallero():
     if exportar_medallero():
         messagebox.showinfo("Medallero", "Archivo medallero.csv generado correctamente.")
 
+#    REPORTE CON PANDAS
+def generar_reporte():
+
+    if len(resultados) == 0:
+        messagebox.showwarning("Reporte", "Aún no hay resultados registrados.")
+        return
+    df = pd.DataFrame(resultados, columns=["Disciplina", "Universidad", "Medalla"])
+    df = df[["Universidad", "Disciplina", "Medalla"]]
+
+    conteo = df.groupby(["Universidad", "Medalla"]).size().unstack(fill_value=0)
+    conteo = conteo.reindex(columns=MEDALLAS, fill_value=0)  # por si nadie tiene alguna medalla
+    conteo["Puntos"] = conteo["Oro"] * PUNTOS["Oro"] + conteo["Plata"] * PUNTOS["Plata"] + conteo["Bronce"] * PUNTOS["Bronce"]
+    conteo = conteo.sort_values(["Puntos", "Oro", "Plata", "Bronce"], ascending=False)
+
+    mejor = list(conteo.iloc[0])
+    ganadoras = []
+    for universidad in conteo.index:
+        if list(conteo.loc[universidad]) == mejor:
+            ganadoras.append(universidad)
+
+    lineas = ["Universidad | Oro | Plata | Bronce | Puntos"]
+    for universidad in conteo.index:
+        f = conteo.loc[universidad]
+        lineas.append(universidad + " | " + str(f["Oro"]) + " | " + str(f["Plata"]) + " | "
+                      + str(f["Bronce"]) + " | " + str(f["Puntos"]))
+    if len(ganadoras) == 1:
+        lineas.append("Universidad ganadora: " + ganadoras[0])
+    else:
+        lineas.append("Empate entre: " + ", ".join(ganadoras))
+
+    ventana_reporte = tkinter.Toplevel(ventana)
+    ventana_reporte.title("Reporte con Pandas")
+    ventana_reporte.configure(bg=COLOR_FONDO)
+    ttk.Label(ventana_reporte, text="Reporte: resultados de la Copa Loyola", style="Titulo.TLabel").pack(anchor="w", padx=10, pady=5)
+    lista = tkinter.Listbox(ventana_reporte, width=60, height=15, font=(FUENTE, 10),
+                            bg=COLOR_LISTA_FONDO, fg=COLOR_LISTA_TEXTO)
+    lista.pack(fill="both", expand=True, padx=10, pady=10)
+    mostrar(lista, lineas)
+
+    try:
+        df.to_csv("reporte_copa_loyola.csv", index=False, encoding="utf-8-sig")
+    except OSError as error:
+        messagebox.showerror("Error", "No se pudo exportar reporte_copa_loyola.csv: " + str(error))
+        return
+    messagebox.showinfo("Reporte", "Reporte generado y exportado a reporte_copa_loyola.csv")
+
 #    CONSTRUCCION DE LA VENTANA
 
 def crear_pestana(titulo):
@@ -803,6 +850,7 @@ ttk.Label(form, text="Archivo: " + ARCHIVO_DATOS).pack(anchor="w")
 botones(form, [["Guardar datos (JSON)", guardar_datos],
                ["Cargar datos (JSON)", cargar_datos]])
 botones(form, [["Medallero (CSV)", boton_medallero]])
+botones(form, [["Generar Reporte con Pandas", generar_reporte]])
 
 actualizar_listas()
 ventana.mainloop()

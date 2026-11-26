@@ -7,5 +7,6 @@ Autores: Juan José Orjuela Ocampo y Samuel Jiménez.
 ## Ejecutar
 
 ```powershell
+pip install -r requirements.txt
 python copa_loyola.py
 ```
