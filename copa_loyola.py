@@ -2,6 +2,7 @@ import tkinter
 from tkinter import ttk
 from tkinter import messagebox
 import json
+import csv
 import os
 
 #    COLORES
@@ -601,7 +602,9 @@ def guardar_datos():
     except (OSError, TypeError) as error:
         messagebox.showerror("Error", "No se pudo guardar el archivo: " + str(error))
         return
-    messagebox.showinfo("Guardar datos", "Datos guardados correctamente en " + ARCHIVO_DATOS)
+    if not exportar_medallero():
+        return
+    messagebox.showinfo("Guardar datos", "Datos guardados en " + ARCHIVO_DATOS + " y medallero.csv")
 
 def cargar_datos():
 
@@ -632,6 +635,25 @@ def cargar_datos():
                         "Universidades: " + str(len(universidades)) + " | Deportistas: " + str(len(deportistas)) + "\n"
                         "Disciplinas: " + str(len(disciplinas)) + " | Inscripciones: " + str(len(inscripciones)) + "\n"
                         "Resultados: " + str(len(resultados)))
+
+def exportar_medallero():
+
+    medallero = calcular_medallero()
+    try:
+        with open("medallero.csv", "w", newline="", encoding="utf-8-sig") as archivo:
+            escritor = csv.writer(archivo)
+            escritor.writerow(["Universidad", "Oro", "Plata", "Bronce"])
+            for universidad in medallero:
+                escritor.writerow([universidad] + medallero[universidad])
+    except OSError as error:
+        messagebox.showerror("Error", "No se pudo crear medallero.csv: " + str(error))
+        return False
+    return True
+
+def boton_medallero():
+
+    if exportar_medallero():
+        messagebox.showinfo("Medallero", "Archivo medallero.csv generado correctamente.")
 
 #    CONSTRUCCION DE LA VENTANA
 
@@ -748,6 +770,7 @@ botones(form, [["Consultar", consultar]])
 ttk.Label(form, text="Archivo: " + ARCHIVO_DATOS).pack(anchor="w")
 botones(form, [["Guardar datos (JSON)", guardar_datos],
                ["Cargar datos (JSON)", cargar_datos]])
+botones(form, [["Medallero (CSV)", boton_medallero]])
 
 actualizar_listas()
 ventana.mainloop()
