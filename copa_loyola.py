@@ -46,6 +46,14 @@ def nombres(lista):
         resultado.append(registro["nombre"])
     return resultado
 
+def etiquetas_deportistas():
+
+    # Nombre y documento juntos: dos deportistas pueden llamarse igual, el documento los distingue
+    etiquetas = []
+    for d in deportistas:
+        etiquetas.append(d["nombre"] + " (" + d["tipo_doc"] + " " + d["num_doc"] + ")")
+    return etiquetas
+
 def campos_vacios(valores):
 
     for valor in valores:
@@ -70,7 +78,7 @@ def limpiar(campos):
 def documento_invalido(tipo_doc, num_doc):
 
     if tipo_doc == "Pasaporte":
-        return False
+        return not num_doc.isalnum()   # el pasaporte admite letras y dígitos, pero no espacios ni símbolos
     return not num_doc.isdigit()
 
 def refrescar_combo(combo, valores):
@@ -101,7 +109,7 @@ def actualizar_listas():
 
     refrescar_combo(combo_universidad_dep, nombres(universidades))
     refrescar_combo(combo_universidad_res, nombres(universidades))
-    refrescar_combo(combo_deportista_ins, nombres(deportistas))
+    refrescar_combo(combo_deportista_ins, etiquetas_deportistas())
     refrescar_combo(combo_disciplina_ins, nombres(disciplinas))
     refrescar_combo(combo_filtro_ins, ["Todas"] + nombres(disciplinas))
     refrescar_combo(combo_disciplina_res, nombres(disciplinas))
@@ -152,11 +160,11 @@ def universidades_ganadoras(clasificacion):
     return ganadoras
 
 
-def disciplinas_de(deportista):
+def disciplinas_de(num_doc):
 
     lista = []
     for fila in inscripciones:
-        if fila[0] == deportista:
+        if fila[0] == num_doc:
             lista.append(fila[1])
     if len(lista) == 0:
         return "Sin inscripciones"
@@ -182,6 +190,7 @@ def crear_universidad():
 
     limpiar([entrada_nombre_uni, entrada_pais, entrada_ciudad, combo_tipo])
     actualizar_listas()
+    messagebox.showinfo("Universidades", "Universidad registrada correctamente.")
 
 def seleccionar_universidad(evento):
 
@@ -226,6 +235,7 @@ def actualizar_universidad():
 
     limpiar([entrada_nombre_uni, entrada_pais, entrada_ciudad, combo_tipo])
     actualizar_listas()
+    messagebox.showinfo("Universidades", "Universidad actualizada correctamente.")
 
 
 def eliminar_universidad():
@@ -245,9 +255,12 @@ def eliminar_universidad():
     if asociada == True:
         messagebox.showerror("Error", "La universidad tiene deportistas o resultados asociados.")
         return
+    if not messagebox.askyesno("Confirmar", "¿Eliminar la universidad " + nombre + "?"):
+        return
     universidades.pop(seleccion[0])
     limpiar([entrada_nombre_uni, entrada_pais, entrada_ciudad, combo_tipo])
     actualizar_listas()
+    messagebox.showinfo("Universidades", "Universidad eliminada.")
 
 #        PESTANA DEPORTISTAS
 def crear_deportista():
@@ -264,14 +277,15 @@ def crear_deportista():
         messagebox.showerror("Error", "La universidad no existe.")
         return
     if documento_invalido(tipo_doc, num_doc):
-        messagebox.showerror("Error", "El número de documento solo puede tener dígitos.")
+        messagebox.showerror("Error", "El número de documento solo puede tener dígitos (el pasaporte también admite letras).")
         return
-    if buscar(deportistas, "num_doc", num_doc) != -1 or buscar(deportistas, "nombre", nombre) != -1:
-        messagebox.showerror("Error", "El deportista ya está registrado.")
+    if buscar(deportistas, "num_doc", num_doc) != -1:
+        messagebox.showerror("Error", "Ya hay un deportista registrado con ese número de documento.")
         return
     deportistas.append({"nombre": nombre, "tipo_doc": tipo_doc, "num_doc": num_doc, "universidad": universidad})
     limpiar([entrada_nombre_dep, combo_tipo_doc, entrada_num_doc, combo_universidad_dep])
     actualizar_listas()
+    messagebox.showinfo("Deportistas", "Deportista registrado correctamente.")
 
 def seleccionar_deportista(evento):
     seleccion = lista_deportistas.curselection()
@@ -302,36 +316,39 @@ def actualizar_deportista():
         messagebox.showerror("Error", "La universidad no existe.")
         return
     if documento_invalido(tipo_doc, num_doc):
-        messagebox.showerror("Error", "El número de documento solo puede tener dígitos.")
+        messagebox.showerror("Error", "El número de documento solo puede tener dígitos (el pasaporte también admite letras).")
         return
-    existe_doc =buscar(deportistas, "num_doc", num_doc)
-    existe_nombre = buscar(deportistas, "nombre", nombre)
-    if (existe_doc != -1 and existe_doc != i) or (existe_nombre != -1 and existe_nombre != i):
-        messagebox.showerror("Error", "Ya existe otro deportista con esos datos.")
+    existe = buscar(deportistas, "num_doc", num_doc)
+    if existe != -1 and existe != i:
+        messagebox.showerror("Error", "Ya existe otro deportista con ese número de documento.")
         return
 
-    nombre_viejo = deportistas[i]["nombre"]
+    doc_viejo = deportistas[i]["num_doc"]
     deportistas[i] = {"nombre": nombre, "tipo_doc": tipo_doc, "num_doc": num_doc, "universidad": universidad}
     for fila in inscripciones:
-        if fila[0] == nombre_viejo:
-            fila[0] = nombre
+        if fila[0] == doc_viejo:
+            fila[0] = num_doc
 
     limpiar([entrada_nombre_dep, combo_tipo_doc, entrada_num_doc, combo_universidad_dep])
     actualizar_listas()
+    messagebox.showinfo("Deportistas", "Deportista actualizado correctamente.")
 
 def eliminar_deportista():
     seleccion = lista_deportistas.curselection()
     if len(seleccion) == 0:
         messagebox.showerror("Error", "Seleccione un deportista de la lista.")
         return
-    nombre = deportistas[seleccion[0]]["nombre"]
+    d = deportistas[seleccion[0]]
     for fila in inscripciones:
-        if fila[0] == nombre:
+        if fila[0] == d["num_doc"]:
             messagebox.showerror("Error", "El deportista tiene inscripciones. Elimínelas primero.")
             return
+    if not messagebox.askyesno("Confirmar", "¿Eliminar al deportista " + d["nombre"] + "?"):
+        return
     deportistas.pop(seleccion[0])
     limpiar([entrada_nombre_dep, combo_tipo_doc, entrada_num_doc, combo_universidad_dep])
     actualizar_listas()
+    messagebox.showinfo("Deportistas", "Deportista eliminado.")
 
 #  PESTAÑA DE DISCIPLINAS
 def crear_disciplina():
@@ -346,6 +363,7 @@ def crear_disciplina():
     disciplinas.append({"nombre": nombre, "modalidad": modalidad})
     limpiar([entrada_nombre_dis, combo_modalidad])
     actualizar_listas()
+    messagebox.showinfo("Disciplinas", "Disciplina registrada correctamente.")
 
 def seleccionar_disciplina(evento):
 
@@ -374,6 +392,15 @@ def actualizar_disciplina():
         messagebox.showerror("Error", "Ya existe otra disciplina con ese nombre.")
         return
     nombre_viejo = disciplinas[i]["nombre"]
+    if modalidad == "Por equipos":
+        # No se puede pasar a por equipos si una universidad ya tiene varias medallas en la disciplina
+        con_medalla = set()
+        for fila in resultados:
+            if fila[0] == nombre_viejo:
+                if fila[1] in con_medalla:
+                    messagebox.showerror("Error", "No puede ser por equipos: " + fila[1] + " ya tiene varias medallas en esta disciplina.")
+                    return
+                con_medalla.add(fila[1])
     disciplinas[i] = {"nombre": nombre, "modalidad": modalidad}
     for fila in inscripciones:
         if fila[1] == nombre_viejo:
@@ -383,6 +410,7 @@ def actualizar_disciplina():
             fila[0] = nombre
     limpiar([entrada_nombre_dis, combo_modalidad])
     actualizar_listas()
+    messagebox.showinfo("Disciplinas", "Disciplina actualizada correctamente.")
 
 def eliminar_disciplina():
     seleccion = lista_disciplinas.curselection()
@@ -398,9 +426,12 @@ def eliminar_disciplina():
         if fila[0] == nombre:
             messagebox.showerror("Error", "La disciplina tiene resultados asociados.")
             return
+    if not messagebox.askyesno("Confirmar", "¿Eliminar la disciplina " + nombre + "?"):
+        return
     disciplinas.pop(seleccion[0])
     limpiar([entrada_nombre_dis, combo_modalidad])
     actualizar_listas()
+    messagebox.showinfo("Disciplinas", "Disciplina eliminada.")
 
 #        PESTANA INSCRIPCIONES
 filas_visibles = []
@@ -418,8 +449,8 @@ def mostrar_inscripciones():
         contador = 1
         for i in range(len(inscripciones)):
             if inscripciones[i][1] == d["nombre"]:
-                j = buscar(deportistas, "nombre", inscripciones[i][0])
-                lineas.append(str(contador) + ". " + inscripciones[i][0] + " | " + deportistas[j]["universidad"])
+                j = buscar(deportistas, "num_doc", inscripciones[i][0])
+                lineas.append(str(contador) + ". " + deportistas[j]["nombre"] + " | " + deportistas[j]["universidad"])
                 filas_visibles.append(i)
                 contador = contador + 1
     mostrar(lista_inscripciones, lineas)
@@ -429,28 +460,33 @@ def filtrar_inscripciones(evento):
     mostrar_inscripciones()
 
 def inscribir():
-    deportista = combo_deportista_ins.get().strip()
+    posicion = combo_deportista_ins.current()   # posición del deportista escogido, o -1 si no hay
     disciplina = combo_disciplina_ins.get().strip()
-    if campos_vacios([deportista, disciplina]):
+    if posicion == -1 or disciplina == "":
         messagebox.showerror("Error", "Seleccione deportista y disciplina.")
         return
-    if buscar(deportistas, "nombre", deportista) == -1 or buscar(disciplinas, "nombre", disciplina) == -1:
-        messagebox.showerror("Error", "El deportista o la disciplina no existen.")
+    if buscar(disciplinas, "nombre", disciplina) == -1:
+        messagebox.showerror("Error", "La disciplina no existe.")
         return
+    deportista = deportistas[posicion]
     for fila in inscripciones:
-        if fila[0] == deportista and fila[1] == disciplina:
+        if fila[0] == deportista["num_doc"] and fila[1] == disciplina:
             messagebox.showerror("Error", "El deportista ya está inscrito en esa disciplina.")
             return
-    inscripciones.append([deportista, disciplina])
+    inscripciones.append([deportista["num_doc"], disciplina])
     actualizar_listas()
+    messagebox.showinfo("Inscripciones", deportista["nombre"] + " quedó inscrito en " + disciplina + ".")
 
 def eliminar_inscripcion():
     seleccion = lista_inscripciones.curselection()
     if len(seleccion) == 0 or filas_visibles[seleccion[0]] == -1:
         messagebox.showerror("Error", "Seleccione una inscripción de la lista.")
         return
+    if not messagebox.askyesno("Confirmar", "¿Eliminar la inscripción seleccionada?"):
+        return
     inscripciones.pop(filas_visibles[seleccion[0]])
     actualizar_listas()
+    messagebox.showinfo("Inscripciones", "Inscripción eliminada.")
 
 #        PESTANA RESULTADOS
 filas_resultados = []
@@ -477,7 +513,8 @@ def registrar_resultado():
     if campos_vacios([disciplina, universidad, posicion]):
         messagebox.showerror("Error", "Todos los campos son obligatorios.")
         return
-    if buscar(disciplinas, "nombre", disciplina) == -1:
+    i = buscar(disciplinas, "nombre", disciplina)
+    if i == -1:
         messagebox.showerror("Error", "La disciplina no existe.")
         return
     if buscar(universidades, "nombre", universidad) == -1:
@@ -487,24 +524,31 @@ def registrar_resultado():
         messagebox.showerror("Error", "La posición debe ser Oro, Plata o Bronce.")
         return
 
+    # En una disciplina individual una universidad puede ganar varias medallas (con deportistas distintos);
+    # por equipos solo compite un equipo por universidad, así que solo puede tener una
+    por_equipos = disciplinas[i]["modalidad"] == "Por equipos"
     for fila in resultados:
         if fila[0] == disciplina and fila[2] == posicion:
             messagebox.showerror("Error", "Ya hay una universidad con " + posicion + " en " + disciplina + ".")
             return
-        if fila[0] == disciplina and fila[1] == universidad:
-            messagebox.showerror("Error", "La universidad ya tiene un resultado en " + disciplina + ".")
+        if por_equipos and fila[0] == disciplina and fila[1] == universidad:
+            messagebox.showerror("Error", "La universidad ya tiene un resultado en " + disciplina + " (disciplina por equipos).")
             return
 
     resultados.append([disciplina, universidad, posicion])
     actualizar_listas()
+    messagebox.showinfo("Resultados", "Resultado registrado correctamente.")
 
 def eliminar_resultado():
     seleccion = lista_resultados.curselection()
     if len(seleccion) == 0:
         messagebox.showerror("Error", "Seleccione un resultado de la lista.")
         return
+    if not messagebox.askyesno("Confirmar", "¿Eliminar el resultado seleccionado?"):
+        return
     resultados.pop(filas_resultados[seleccion[0]])
     actualizar_listas()
+    messagebox.showinfo("Resultados", "Resultado eliminado.")
 
 #       PESTANA CONSULTAS
 def consultar():
@@ -514,7 +558,7 @@ def consultar():
     if opcion == "Deportistas participantes":
         for d in deportistas:
             i = buscar(universidades, "nombre", d["universidad"])
-            lineas.append(d["nombre"] + " | " + d["universidad"] + " | " + universidades[i]["pais"] + " | " + disciplinas_de(d["nombre"]))
+            lineas.append(d["nombre"] + " | " + d["universidad"] + " | " + universidades[i]["pais"] + " | " + disciplinas_de(d["num_doc"]))
 
     elif opcion == "Medallero por universidad":
         medallero = calcular_medallero()
@@ -565,7 +609,8 @@ def estructura_valida(datos):
             if type(registro) != dict:
                 return False
             for campo_registro in CAMPOS[seccion]:
-                if type(registro.get(campo_registro)) != str:
+                valor = registro.get(campo_registro)
+                if type(valor) != str or valor.strip() == "":
                     return False
     for seccion, tamano in [["inscripciones", 2], ["resultados", 3]]:
         if type(datos.get(seccion)) != list:
@@ -576,17 +621,23 @@ def estructura_valida(datos):
 
     # Las referencias deben existir, si no la interfaz falla al mostrar los datos
     nombres_uni = nombres(datos["universidades"])
-    nombres_dep = nombres(datos["deportistas"])
     nombres_dis = nombres(datos["disciplinas"])
+    documentos = []
     for d in datos["deportistas"]:
+        documentos.append(d["num_doc"])
         if d["universidad"] not in nombres_uni:
             return False
     for fila in datos["inscripciones"]:
-        if fila[0] not in nombres_dep or fila[1] not in nombres_dis:
+        if fila[0] not in documentos or fila[1] not in nombres_dis:
             return False
+    medallas_entregadas = set()
     for fila in datos["resultados"]:
         if fila[0] not in nombres_dis or fila[1] not in nombres_uni or fila[2] not in MEDALLAS:
             return False
+        medalla = fila[0] + " - " + fila[2]
+        if medalla in medallas_entregadas:   # la misma medalla dos veces en una disciplina
+            return False
+        medallas_entregadas.add(medalla)
     return True
 
 #    CONJUNTOS PARA DETECTAR DUPLICADOS
@@ -629,12 +680,16 @@ def guardar_datos():
     if hay_duplicados():
         return
     try:
-        with open(ARCHIVO_DATOS, "w", encoding="utf-8") as archivo:
+        # Se escribe en un archivo temporal y luego se reemplaza el anterior:
+        # si la escritura falla a la mitad, el archivo que ya existía no se daña
+        with open(ARCHIVO_DATOS + ".tmp", "w", encoding="utf-8") as archivo:
             json.dump(datos, archivo, ensure_ascii=False, indent=4)
+        os.replace(ARCHIVO_DATOS + ".tmp", ARCHIVO_DATOS)
     except (OSError, TypeError) as error:
         messagebox.showerror("Error", "No se pudo guardar el archivo: " + str(error))
         return
     if not exportar_medallero():
+        messagebox.showwarning("Guardar datos", "Los datos sí se guardaron en " + ARCHIVO_DATOS + ", pero falta medallero.csv.")
         return
     messagebox.showinfo("Guardar datos", "Datos guardados en " + ARCHIVO_DATOS + " y medallero.csv")
 
@@ -694,13 +749,17 @@ def generar_reporte():
     if len(resultados) == 0:
         messagebox.showwarning("Reporte", "Aún no hay resultados registrados.")
         return
-    df = pd.DataFrame(resultados, columns=["Disciplina", "Universidad", "Medalla"])
-    df = df[["Universidad", "Disciplina", "Medalla"]]
+    try:
+        df = pd.DataFrame(resultados, columns=["Disciplina", "Universidad", "Medalla"])
+        df = df[["Universidad", "Disciplina", "Medalla"]]
 
-    conteo = df.groupby(["Universidad", "Medalla"]).size().unstack(fill_value=0)
-    conteo = conteo.reindex(columns=MEDALLAS, fill_value=0)  # por si nadie tiene alguna medalla
-    conteo["Puntos"] = conteo["Oro"] * PUNTOS["Oro"] + conteo["Plata"] * PUNTOS["Plata"] + conteo["Bronce"] * PUNTOS["Bronce"]
-    conteo = conteo.sort_values(["Puntos", "Oro", "Plata", "Bronce"], ascending=False)
+        conteo = df.groupby(["Universidad", "Medalla"]).size().unstack(fill_value=0)
+        conteo = conteo.reindex(columns=MEDALLAS, fill_value=0)  # por si nadie tiene alguna medalla
+        conteo["Puntos"] = conteo["Oro"] * PUNTOS["Oro"] + conteo["Plata"] * PUNTOS["Plata"] + conteo["Bronce"] * PUNTOS["Bronce"]
+        conteo = conteo.sort_values(["Puntos", "Oro", "Plata", "Bronce"], ascending=False)
+    except (ValueError, KeyError, TypeError) as error:
+        messagebox.showerror("Error", "No se pudo generar el reporte: " + str(error))
+        return
 
     mejor = list(conteo.iloc[0])
     ganadoras = []
@@ -724,7 +783,10 @@ def generar_reporte():
     ttk.Label(ventana_reporte, text="Reporte: resultados de la Copa Loyola", style="Titulo.TLabel").pack(anchor="w", padx=10, pady=5)
     lista = tkinter.Listbox(ventana_reporte, width=60, height=15, font=(FUENTE, 10),
                             bg=COLOR_LISTA_FONDO, fg=COLOR_LISTA_TEXTO)
-    lista.pack(fill="both", expand=True, padx=10, pady=10)
+    barra = ttk.Scrollbar(ventana_reporte, orient="vertical", command=lista.yview)
+    lista.configure(yscrollcommand=barra.set)
+    barra.pack(side="right", fill="y", padx=(0, 10), pady=10)
+    lista.pack(side="left", fill="both", expand=True, padx=(10, 0), pady=10)
     mostrar(lista, lineas)
 
     try:
@@ -748,7 +810,10 @@ def crear_pestana(titulo):
                               selectbackground=COLOR_SELECCION, selectforeground=COLOR_LISTA_TEXTO,
                               exportselection=False)
 
-    listbox.pack(side="right", fill="both", expand=True, padx=5)
+    barra = ttk.Scrollbar(pestana, orient="vertical", command=listbox.yview)
+    listbox.configure(yscrollcommand=barra.set)
+    barra.pack(side="right", fill="y")
+    listbox.pack(side="right", fill="both", expand=True, padx=(5, 0))
     return formulario, listbox
 
 
