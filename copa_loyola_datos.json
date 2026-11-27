@@ -1,0 +1,230 @@
+{
+    "universidades": [
+        {
+            "nombre": "Javeriana Cali",
+            "pais": "Colombia",
+            "ciudad": "Cali",
+            "tipo": "Nacional"
+        },
+        {
+            "nombre": "Universidad del Valle",
+            "pais": "Colombia",
+            "ciudad": "Cali",
+            "tipo": "Nacional"
+        },
+        {
+            "nombre": "Universidad de los Andes",
+            "pais": "Colombia",
+            "ciudad": "Bogotá",
+            "tipo": "Nacional"
+        },
+        {
+            "nombre": "Universidad de Lima",
+            "pais": "Perú",
+            "ciudad": "Lima",
+            "tipo": "Internacional"
+        },
+        {
+            "nombre": "Universidad de Chile",
+            "pais": "Chile",
+            "ciudad": "Santiago",
+            "tipo": "Internacional"
+        }
+    ],
+    "deportistas": [
+        {
+            "nombre": "Laura Gómez",
+            "tipo_doc": "CC",
+            "num_doc": "1144201001",
+            "universidad": "Javeriana Cali"
+        },
+        {
+            "nombre": "Andrés Muñoz",
+            "tipo_doc": "CC",
+            "num_doc": "1144201002",
+            "universidad": "Javeriana Cali"
+        },
+        {
+            "nombre": "Valentina Ríos",
+            "tipo_doc": "TI",
+            "num_doc": "1006123456",
+            "universidad": "Universidad del Valle"
+        },
+        {
+            "nombre": "Santiago Castro",
+            "tipo_doc": "CC",
+            "num_doc": "1020304050",
+            "universidad": "Universidad de los Andes"
+        },
+        {
+            "nombre": "Camila Torres",
+            "tipo_doc": "CC",
+            "num_doc": "1020304051",
+            "universidad": "Universidad de los Andes"
+        },
+        {
+            "nombre": "Diego Quispe",
+            "tipo_doc": "Pasaporte",
+            "num_doc": "PE1234567",
+            "universidad": "Universidad de Lima"
+        },
+        {
+            "nombre": "María Fernanda Salas",
+            "tipo_doc": "Pasaporte",
+            "num_doc": "PE7654321",
+            "universidad": "Universidad de Lima"
+        },
+        {
+            "nombre": "Tomás Fuentes",
+            "tipo_doc": "Pasaporte",
+            "num_doc": "CL4455667",
+            "universidad": "Universidad de Chile"
+        },
+        {
+            "nombre": "Isidora Rojas",
+            "tipo_doc": "Pasaporte",
+            "num_doc": "CL9988776",
+            "universidad": "Universidad de Chile"
+        },
+        {
+            "nombre": "Felipe Ortiz",
+            "tipo_doc": "CC",
+            "num_doc": "1144201003",
+            "universidad": "Universidad del Valle"
+        }
+    ],
+    "disciplinas": [
+        {
+            "nombre": "Natación",
+            "modalidad": "Individual"
+        },
+        {
+            "nombre": "Atletismo",
+            "modalidad": "Individual"
+        },
+        {
+            "nombre": "Fútbol",
+            "modalidad": "Por equipos"
+        },
+        {
+            "nombre": "Ajedrez",
+            "modalidad": "Individual"
+        }
+    ],
+    "inscripciones": [
+        [
+            "Laura Gómez",
+            "Natación"
+        ],
+        [
+            "Laura Gómez",
+            "Atletismo"
+        ],
+        [
+            "Andrés Muñoz",
+            "Fútbol"
+        ],
+        [
+            "Andrés Muñoz",
+            "Ajedrez"
+        ],
+        [
+            "Valentina Ríos",
+            "Natación"
+        ],
+        [
+            "Felipe Ortiz",
+            "Ajedrez"
+        ],
+        [
+            "Santiago Castro",
+            "Fútbol"
+        ],
+        [
+            "Camila Torres",
+            "Atletismo"
+        ],
+        [
+            "Diego Quispe",
+            "Natación"
+        ],
+        [
+            "Diego Quispe",
+            "Fútbol"
+        ],
+        [
+            "María Fernanda Salas",
+            "Atletismo"
+        ],
+        [
+            "Tomás Fuentes",
+            "Ajedrez"
+        ],
+        [
+            "Isidora Rojas",
+            "Atletismo"
+        ]
+    ],
+    "resultados": [
+        [
+            "Natación",
+            "Javeriana Cali",
+            "Oro"
+        ],
+        [
+            "Natación",
+            "Universidad de Lima",
+            "Plata"
+        ],
+        [
+            "Natación",
+            "Universidad del Valle",
+            "Bronce"
+        ],
+        [
+            "Atletismo",
+            "Universidad de Lima",
+            "Oro"
+        ],
+        [
+            "Atletismo",
+            "Javeriana Cali",
+            "Plata"
+        ],
+        [
+            "Atletismo",
+            "Universidad de Chile",
+            "Bronce"
+        ],
+        [
+            "Fútbol",
+            "Javeriana Cali",
+            "Oro"
+        ],
+        [
+            "Fútbol",
+            "Universidad de los Andes",
+            "Plata"
+        ],
+        [
+            "Fútbol",
+            "Universidad de Lima",
+            "Bronce"
+        ],
+        [
+            "Ajedrez",
+            "Universidad de Chile",
+            "Oro"
+        ],
+        [
+            "Ajedrez",
+            "Universidad del Valle",
+            "Plata"
+        ],
+        [
+            "Ajedrez",
+            "Javeriana Cali",
+            "Bronce"
+        ]
+    ]
+}
